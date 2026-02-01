@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Database
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+
+# Data
+data/*.png
+data/*.mp3
+!data/text_audio/azon.mp3

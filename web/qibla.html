@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qibla Kompasi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .compass {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 5px solid #eab308;
+            border-radius: 50%;
+            transition: transform 0.1s ease-out;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 140px;
+            background: #eab308;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+        }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid #eab308;
+        }
+        .kaaba {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+        }
+        .n { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: #ef4444; font-weight: bold; }
+        .s { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .e { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+        .w { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
+        
+        #status { margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="compass" class="compass">
+        <div class="n">N</div>
+        <div class="s">S</div>
+        <div class="e">E</div>
+        <div class="w">W</div>
+        <div id="arrow" class="arrow">
+            <div class="kaaba">🕋</div>
+        </div>
+    </div>
+    <div id="status">Joylashuv yuklanmoqda...</div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let qiblaAngle = 0;
+        const arrow = document.getElementById('arrow');
+        const status = document.getElementById('status');
+
+        // URL parameters check
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = parseFloat(urlParams.get('lat'));
+        const lon = parseFloat(urlParams.get('lon'));
+
+        if (lat && lon) {
+            calculateQibla(lat, lon);
+        } else {
+            status.innerText = "Joylashuv kutilmoqda...";
+        }
+
+        function calculateQibla(lat, lon) {
+            const kaabaLat = 21.4225;
+            const kaabaLon = 39.8262;
+            
+            const phi1 = lat * Math.PI / 180;
+            const phi2 = kaabaLat * Math.PI / 180;
+            const dLon = (kaabaLon - lon) * Math.PI / 180;
+            
+            const y = Math.sin(dLon);
+            const x = Math.cos(phi1) * Math.tan(phi2) - Math.sin(phi1) * Math.cos(dLon);
+            
+            qiblaAngle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+            status.innerText = `Ka'ba azimuti: ${qiblaAngle.toFixed(1)}°\nTelefoningizni burang`;
+            arrow.style.transform = `translate(-50%, -100%) rotate(${qiblaAngle}deg)`;
+        }
+
+        window.addEventListener('deviceorientation', function(event) {
+            let heading = event.webkitCompassHeading || (360 - event.alpha);
+            if (heading) {
+                const rotation = -heading;
+                document.getElementById('compass').style.transform = `rotate(${rotation}deg)`;
+            }
+        }, true);
+    </script>
+</body>
+</html>
