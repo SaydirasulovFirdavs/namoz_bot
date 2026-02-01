@@ -11,9 +11,28 @@ from utils.set_bot_commands import set_default_commands
 from handlers.users import users_router
 
 
+import os
+from aiohttp import web
+
+async def handle(request):
+    return web.Response(text="Bot is running!")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get('/', handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logging.info(f"Keep-alive server started on port {port}")
+
 async def main():
     # Logging Configuration
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    
+    # Start web server for Render health checks
+    await start_web_server()
     
     # Database initialization
     db = Database()
