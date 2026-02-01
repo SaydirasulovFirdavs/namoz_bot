@@ -46,7 +46,15 @@ async def get_qibla(message: types.Message):
     idx = int((angle + 22.5) / 45) % 8
     direction_name = directions[idx]
     
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+    webapp_url = f"https://saydirasulovfirdavs.github.io/namoz_bot/web/qibla.html?lat={lat}&lon={lon}"
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🧭 Interaktiv Kompas", web_app=WebAppInfo(url=webapp_url))]
+    ])
+    
     await message.answer_photo(photo, caption=f"Sizning joylashuvingiz bo'yicha Qibla yo'nalishi:\n\n"
                          f"🧭 Azimut: **{angle:.2f}°**\n"
                          f"📍 Yo'nalish: **{direction_name}**\n\n"
-                         f"Rasmda oltin rangli o'q Ka'ba tomonga yo'nalgan (N - Shimol).")
+                         f"Rasmda oltin rangli o'q Ka'ba tomonga yo'nalgan (N - Shimol).\n\n"
+                         f"Jonli kompasdan foydalanish uchun tugmani bosing:", 
+                         reply_markup=markup)
