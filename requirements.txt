@@ -1,0 +1,10 @@
+aiogram>=3.12.0
+python-dotenv
+apscheduler
+requests
+pydantic-settings
+environs
+Pillow
+uvicorn
+gunicorn
+aiohttp
