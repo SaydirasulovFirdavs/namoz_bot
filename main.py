@@ -32,7 +32,17 @@ async def main():
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     
     # Start web server for Render health checks
-    await start_web_server()
+    try:
+        app = web.Application()
+        app.router.add_get('/', handle)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        port = int(os.environ.get("PORT", 10000)) # Default to 10000 for Render
+        site = web.TCPSite(runner, '0.0.0.0', port)
+        await site.start()
+        print(f"--- RENDER HEALTH CHECK SERVER STARTED ON PORT {port} ---", flush=True)
+    except Exception as e:
+        print(f"--- FAILED TO START HEALTH CHECK SERVER: {e} ---", flush=True)
     
     # Database initialization
     db = Database()
@@ -42,7 +52,7 @@ async def main():
         db.create_table_tasbih()
         db.create_table_tracker()
     except Exception as e:
-        print(f"Error creating table: {e}")
+        print(f"Error creating table: {e}", flush=True)
 
     # Set commands
     await set_default_commands(bot)
@@ -58,6 +68,7 @@ async def main():
     await start_scheduler()
 
     # Start polling
+    print("--- BOT STARTING POLLING ---", flush=True)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
