@@ -3,6 +3,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import pytz
 from data import config
 
 bot = Bot(
@@ -11,5 +12,7 @@ bot = Bot(
 )
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
-scheduler = AsyncIOScheduler()
+
+TASHKENT = pytz.timezone('Asia/Tashkent')
+scheduler = AsyncIOScheduler(timezone=TASHKENT)
 

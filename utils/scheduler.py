@@ -4,6 +4,9 @@ from utils.db_api.sqlite import Database
 from utils.prayer_api.api import PrayerTimes
 from datetime import datetime, timedelta
 import asyncio
+import pytz
+
+TASHKENT = pytz.timezone('Asia/Tashkent')
 
 import os
 import random
@@ -40,7 +43,7 @@ async def schedule_daily_prayers():
     prayer_api = PrayerTimes()
     
     region_data = {}
-    now = datetime.now()
+    now = datetime.now(TASHKENT)
 
     for user in users:
         user_id = user[0]
@@ -115,10 +118,10 @@ async def schedule_daily_prayers():
 
 async def start_scheduler():
     # Har kuni namoz vaqtlarini yangilash (00:01)
-    scheduler.add_job(schedule_daily_prayers, CronTrigger(hour=0, minute=1))
+    scheduler.add_job(schedule_daily_prayers, CronTrigger(hour=0, minute=1, timezone=TASHKENT))
     
     # Har kuni ertalab hikmatli so'z yuborish (08:00)
-    scheduler.add_job(send_daily_wisdom, CronTrigger(hour=8, minute=0))
+    scheduler.add_job(send_daily_wisdom, CronTrigger(hour=8, minute=0, timezone=TASHKENT))
     
     await schedule_daily_prayers()
     scheduler.start()

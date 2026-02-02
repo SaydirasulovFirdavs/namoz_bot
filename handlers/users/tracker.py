@@ -27,10 +27,13 @@ def get_tracker_keyboard(user_id, date, data):
     builder.adjust(2)
     return builder.as_markup()
 
+import pytz
+TASHKENT = pytz.timezone('Asia/Tashkent')
+
 @router.message(F.text == "✅ Reja")
 async def show_tracker(message: types.Message):
     db = Database()
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(TASHKENT).strftime("%Y-%m-%d")
     data = db.get_daily_tracker(message.from_user.id, today)
     
     await message.answer(f"📅 **Bugungi namozlar rejasi ({today})**\n\nQaysi namozni ado etgan bo'lsangiz, ustiga bosing:", 
@@ -43,7 +46,7 @@ async def track_prayer(call: types.CallbackQuery):
     status = int(status)
     
     db = Database()
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(TASHKENT).strftime("%Y-%m-%d")
     db.update_prayer_status(call.from_user.id, today, prayer, status)
     
     # Refresh keyboard
