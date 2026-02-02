@@ -4,6 +4,8 @@ from loader import dp
 from states.register import Register
 from keyboards.default.menu import main_menu
 
+from keyboards.default.regions import regions_menu
+
 router = Router()
 
 @router.message(F.text == "⚙️ Sozlamalar")
@@ -19,7 +21,7 @@ async def show_settings(message: types.Message):
 
 @router.message(F.text == "📍 Hududni o'zgartirish")
 async def change_region(message: types.Message, state: FSMContext):
-    await message.answer("Yangi hududni kiriting (masalan: Toshkent, Samarqand, Andijon):")
+    await message.answer("Yangi hududni tanlang:", reply_markup=regions_menu)
     await state.set_state(Register.region)
 
 # This router should be included in the users_router
