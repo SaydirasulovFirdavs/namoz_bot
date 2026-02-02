@@ -1,5 +1,5 @@
 from aiogram import types, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from utils.db_api.sqlite import Database
 from states.register import Register
@@ -31,7 +31,7 @@ async def bot_start(message: types.Message, state: FSMContext):
                          reply_markup=regions_menu)
     await state.set_state(Register.region)
 
-@router.message(commands=["stat"])
+@router.message(Command("stat"))
 async def show_stats(message: types.Message):
     user_id = str(message.from_user.id)
     if user_id in ADMINS:
