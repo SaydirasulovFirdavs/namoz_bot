@@ -21,13 +21,14 @@ class PrayerTimes:
         except Exception as e:
             print(f"Error fetching prayer times: {e}")
             return None
-    def get_calendar_times(self, city: str, month: int, year: int, country: str = "Uzbekistan"):
+    def get_calendar_times(self, city: str, month: int, year: int, country: str = "Uzbekistan", adjustment: int = 0):
         url = f"https://api.aladhan.com/v1/calendarByCity/{year}/{month}"
         params = {
             "city": city,
             "country": country,
             "method": 2,
-            "school": 1
+            "school": 1,
+            "adjustment": adjustment
         }
         try:
             response = requests.get(url, params=params)
