@@ -1,77 +1,81 @@
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 import os
 
 def generate_ramadan_calendar(city, data):
-    # Dimensions for high-quality image
-    width, height = 1000, 1600
+    # Dimensions for horizontal readability
+    width, height = 1400, 1100
     
-    # Premium Background: Deep Midnight Blue Gradient
-    image = Image.new('RGB', (width, height), color=(15, 23, 42))
+    # Premium Background: Emerald / Deep Green Gradient
+    image = Image.new('RGB', (width, height), color=(2, 44, 34))
     draw = ImageDraw.Draw(image)
     
-    # Add subtle decorative background elements (Gradient effect)
+    # Simple Gradient for depth
     for i in range(height):
-        r = int(15 + (i / height) * 15)
-        g = int(23 + (i / height) * 15)
-        b = int(42 + (i / height) * 15)
+        r = int(2 + (i / height) * 10)
+        g = int(44 + (i / height) * 20)
+        b = int(34 + (i / height) * 10)
         draw.line([(0, i), (width, i)], fill=(r, g, b))
 
-    # Fonts
+    # Fonts - Using larger sizes for clarity
     try:
-        title_font = ImageFont.truetype("arialbd.ttf", 65)
-        header_font = ImageFont.truetype("arialbd.ttf", 35)
-        table_font = ImageFont.truetype("arial.ttf", 30)
-        footer_font = ImageFont.truetype("arial.ttf", 25)
+        # Standard fonts on windows
+        title_font = ImageFont.truetype("arialbd.ttf", 90)
+        header_font = ImageFont.truetype("arialbd.ttf", 45)
+        table_font = ImageFont.truetype("arialbd.ttf", 36)
+        footer_font = ImageFont.truetype("arial.ttf", 30)
     except:
         title_font = ImageFont.load_default()
         header_font = ImageFont.load_default()
         table_font = ImageFont.load_default()
         footer_font = ImageFont.load_default()
 
-    # Draw Title Area with Gold Accents
-    # Glow effect for title
-    draw.text((width/2, 80), f"RAMAZON TAQVIMI", fill=(234, 179, 8), font=title_font, anchor="mm")
-    draw.text((width/2, 160), city.upper(), fill=(255, 255, 255), font=header_font, anchor="mm")
-    draw.line([(width/2 - 200, 210), (width/2 + 200, 210)], fill=(234, 179, 8), width=3)
+    # Draw Title Area (Gold & White)
+    draw.text((width/2, 80), "RAMAZON TAQVIMI - 2026", fill=(251, 191, 36), font=title_font, anchor="mm")
+    draw.text((width/2, 170), f"Hudud: {city.upper()}", fill=(255, 255, 255), font=header_font, anchor="mm")
+    draw.line([(width/2 - 300, 220), (width/2 + 300, 220)], fill=(251, 191, 36), width=5)
 
-    # Table Header Design
-    start_y = 260
-    header_bg = (30, 41, 59)
-    draw.rounded_rectangle([80, start_y, 920, start_y + 70], radius=15, fill=header_bg)
+    # Table Setup (2 Columns)
+    col_width = (width - 150) // 2
+    row_height = 45
+    start_y = 280
     
-    headers = ["KUN", "SAHARLIK", "IFTORLIK"]
-    draw.text((150, start_y + 35), headers[0], fill=(234, 179, 8), font=header_font, anchor="mm")
-    draw.text((width/2, start_y + 35), headers[1], fill=(234, 179, 8), font=header_font, anchor="mm")
-    draw.text((800, start_y + 35), headers[2], fill=(234, 179, 8), font=header_font, anchor="mm")
+    headers = ["KUN", "SAHAR", "IFTOR"]
+    
+    def draw_table_side(x_offset, days_data):
+        # Header BG
+        draw.rounded_rectangle([x_offset, start_y, x_offset + col_width, start_y + 80], radius=15, fill=(6, 78, 59))
+        # Header Text
+        draw.text((x_offset + 70, start_y + 40), headers[0], fill=(251, 191, 36), font=header_font, anchor="mm")
+        draw.text((x_offset + col_width/2 + 20, start_y + 40), headers[1], fill=(251, 191, 36), font=header_font, anchor="mm")
+        draw.text((x_offset + col_width - 90, start_y + 40), headers[2], fill=(251, 191, 36), font=header_font, anchor="mm")
+        
+        y = start_y + 100
+        for i, day in enumerate(days_data):
+            fajr = day['timings']['Fajr'].split(' ')[0]
+            maghrib = day['timings']['Maghrib'].split(' ')[0]
+            day_num = day['date']['hijri']['day']
+            
+            # Row Background
+            if i % 2 == 0:
+                draw.rounded_rectangle([x_offset - 10, y-5, x_offset + col_width + 10, y + row_height - 5], radius=8, fill=(13, 84, 68))
+            
+            # Text
+            draw.text((x_offset + 70, y + row_height/2 - 5), str(day_num), fill=(255, 255, 255), font=table_font, anchor="mm")
+            draw.text((x_offset + col_width/2 + 20, y + row_height/2 - 5), fajr, fill=(255, 255, 255), font=table_font, anchor="mm")
+            draw.text((x_offset + col_width - 90, y + row_height/2 - 5), maghrib, fill=(251, 191, 36), font=table_font, anchor="mm")
+            y += row_height
 
-    # Draw Data with improved readability
-    y = start_y + 90
-    row_height = 42
+    # Split data into 1-15 and 16-30
+    left_data = data[:15]
+    right_data = data[15:30]
     
-    for i, day in enumerate(data):
-        # Format times (strip timezone)
-        fajr = day['timings']['Fajr'].split(' ')[0]
-        maghrib = day['timings']['Maghrib'].split(' ')[0]
-        
-        # Row background
-        if i % 2 == 0:
-            draw.rounded_rectangle([70, y - 5, 930, y + row_height - 5], radius=10, fill=(30, 41, 59, 100))
-        
-        # Text alignment
-        draw.text((150, y + row_height/2 - 5), str(i+1), fill=(255, 255, 255), font=table_font, anchor="mm")
-        draw.text((width/2, y + row_height/2 - 5), fajr, fill=(255, 255, 255), font=table_font, anchor="mm")
-        draw.text((800, y + row_height/2 - 5), maghrib, fill=(255, 255, 255), font=table_font, anchor="mm")
-        
-        y += row_height
-        
-        if y > height - 120:
-            break
+    draw_table_side(50, left_data)
+    draw_table_side(width/2 + 25, right_data)
 
     # Footer
     footer_text = "Namoz.bot tomonidan taqdim etildi | @namoz_bot"
-    draw.text((width/2, height - 60), footer_text, fill=(148, 163, 184), font=footer_font, anchor="mm")
+    draw.text((width/2, height - 60), footer_text, fill=(167, 139, 250), font=footer_font, anchor="mm")
 
-    # Ensure data directory exists
     os.makedirs("data", exist_ok=True)
     output_path = f"data/ramadan_{city}.png"
     image.save(output_path)
