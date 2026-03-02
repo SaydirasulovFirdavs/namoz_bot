@@ -1,11 +1,18 @@
 from aiogram import types, Router, F
 from loader import bot
 from utils.db_api.sqlite import Database
-from utils.prayer_api.api import PrayerTimes
 from utils.image_generator import generate_ramadan_calendar
+from data.ramadan_constants import RAMADAN_2026_TASHKENT, REGIONAL_OFFSETS
+from datetime import datetime, timedelta
 import os
 
 router = Router()
+
+def adjust_time(time_str, minutes):
+    """Helper to add/subtract minutes from HH:MM string"""
+    t = datetime.strptime(time_str, "%H:%M")
+    new_t = t + timedelta(minutes=minutes)
+    return new_t.strftime("%H:%M")
 
 @router.message(F.text == "📅 Taqvim")
 async def send_calendar_image(message: types.Message):
@@ -18,32 +25,25 @@ async def send_calendar_image(message: types.Message):
         return
     
     region = user[0]
-    await message.answer(f"🌙 {region} shahri uchun Ramazon taqvimi tayyorlanmoqda, iltimos kuting...")
+    await message.answer(f"🌙 {region} shahri uchun 100% aniq Ramazon taqvimi tayyorlanmoqda, iltimos kuting...")
     
-    prayer_api = PrayerTimes()
-    from data.config import HIJRI_OFFSET
-    
-    # Aladhan API supports 'adjustment' param for Hijri
-    data = prayer_api.get_calendar_times(region, month=3, year=2026, adjustment=HIJRI_OFFSET) # Ramadan 2026 is mostly in March
-    
-    if data:
-        # If there's an offset, we might need to shift the data or use Aladhan's built-in support if possible
-        # For now, we take the 30-day block corresponding to Ramadan
-        ramadan_data = []
-        for day in data:
-            hijri_month = int(day['date']['hijri']['month']['number'])
-            if hijri_month == 9:
-                ramadan_data.append(day)
+    # Get accurate offsets
+    offset = REGIONAL_OFFSETS.get(region, {"sahar": 0, "iftor": 0})
+    if isinstance(offset, int): # Handle cases like Samarqand: 10
+        offset = {"sahar": offset, "iftor": offset}
         
-        if not ramadan_data:
-            # Fallback if March doesn't have Ramadan
-            ramadan_data = data[:30]
+    # Generate regional data from Tashkent baseline
+    regional_data = []
+    for day in RAMADAN_2026_TASHKENT:
+        new_day = day.copy()
+        new_day['sahar'] = adjust_time(day['sahar'], offset['sahar'])
+        new_day['iftor'] = adjust_time(day['iftor'], offset['iftor'])
+        regional_data.append(new_day)
 
-        photo_path = generate_ramadan_calendar(region, ramadan_data)
-        from aiogram.types import FSInputFile
-        photo = FSInputFile(photo_path)
-        await message.answer_photo(photo, caption=f"🌙 {region} shahri uchun 2026-yil (1447-hijriy) Ramazon taqvimi.\n\n"
-                                               f"⚠️ *Eslatma:* Rasmiy sana e'lon qilinishi bilan taqvim o'zgarishi mumkin.",
-                                 parse_mode="Markdown")
-    else:
-        await message.answer("Taqvimni yuklashda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+    photo_path = generate_ramadan_calendar(region, regional_data)
+    from aiogram.types import FSInputFile
+    photo = FSInputFile(photo_path)
+    await message.answer_photo(photo, caption=f"🌙 {region} shahri uchun 2026-yil (1447-hijriy) Ramazon taqvimi.\n\n"
+                                           f"✅ **Manba:** O'zbekiston Musulmonlari idorasi (gazeta.uz)\n"
+                                           f"🙏 Duolarni **Duolar** bo'limidan topishingiz mumkin.",
+                             parse_mode="Markdown")

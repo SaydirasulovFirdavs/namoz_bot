@@ -50,6 +50,9 @@ dua_categories = ReplyKeyboardMarkup(
             KeyboardButton(text="🚗 Safar duosi")
         ],
         [
+            KeyboardButton(text="🌙 Saharlik va iftorlik duolari")
+        ],
+        [
             KeyboardButton(text="⬅️ Orqaga")
         ]
     ],

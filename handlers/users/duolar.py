@@ -1,5 +1,6 @@
 from aiogram import types, Router, F
 from keyboards.default.menu import main_menu, dua_categories
+from data.ramadan_constants import RAMADAN_DUAS
 
 router = Router()
 
@@ -13,6 +14,13 @@ DUAS = {
 @router.message(F.text == "📖 Duolar")
 async def show_dua_categories(message: types.Message):
     await message.answer("Duolar bo'limi. Kerakli kategoriyani tanlang:", reply_markup=dua_categories)
+
+@router.message(F.text == "🌙 Saharlik va iftorlik duolari")
+async def show_ramadan_duas(message: types.Message):
+    text = "🌙 **Ramazon duolari**\n\n"
+    for title, content in RAMADAN_DUAS.items():
+        text += f"{content}\n\n---\n\n"
+    await message.answer(text, parse_mode="Markdown")
 
 @router.message(F.text.in_(DUAS.keys()))
 async def send_dua(message: types.Message):

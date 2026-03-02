@@ -51,9 +51,9 @@ def generate_ramadan_calendar(city, data):
         
         y = start_y + 100
         for i, day in enumerate(days_data):
-            fajr = day['timings']['Fajr'].split(' ')[0]
-            maghrib = day['timings']['Maghrib'].split(' ')[0]
-            day_num = day['date']['hijri']['day']
+            fajr = day['sahar']
+            maghrib = day['iftor']
+            day_num = day['day']
             
             # Row Background
             if i % 2 == 0:
